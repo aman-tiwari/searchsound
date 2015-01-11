@@ -4,6 +4,11 @@ from tweepy import Stream
 import json
 import re
 import happy_sad as hs
+import random
+from optimistic import OptimisticDict
+import time
+from numpy import trunc
+import cPickle
 
 nonalp = re.compile(r'([\W_]+)') #Removes nonaplhanumerics
 url1 = re.compile(r'(http t co)') #Removes t.co urls
@@ -19,6 +24,7 @@ secret_token = 'DVy6jnwdX5bdWwsFwin5kS47fQ3A07qKzUJy4qphnHE06'
 cons_key = 'IK2t7YHXfZSRkZfgIhoZx5gd6'
 cons_secret = 'E3FQb4AHD1s2E7yCPPQC8qOPhBWm85yW5WeF3epKCD6ObgLiyd'
 
+
 def _happysad(to_test):
 
     to_test = hs.wn.synsets(to_test)
@@ -30,13 +36,15 @@ def _happysad(to_test):
         happy = [0]
     if not sad:
         sad = [0]
-    h_mean = sum(map(lambda x:x*100, happy[:10]))/10 #Mean of 10 highest values
-    s_mean = sum(map(lambda x:x*100, sad[:10]))/10
+    h_mean = trunc(sum(map(lambda x:x*100, happy[:10]))/10) #Mean of 10 highest values
+    s_mean = trunc(sum(map(lambda x:x*100, sad[:10]))/10)
     return h_mean-s_mean
 
 class Listener(StreamListener):
+    loopcounter = 100
 
     def on_data(self, data):
+        global odict
         #print 'trying'
         tweet = json.loads(data)
         try:
@@ -46,17 +54,22 @@ class Listener(StreamListener):
                 map(lambda s: sen.replace(s, ''), hs.neutral) #deletes neutral words
                 sen = sen.split()
                 out = []
-                out = map(lambda w: _happysad(w), sen)
+                out = map(lambda w: odict[w], sen)
                 print out
 
         except KeyError:
             pass
-        #print data
         return True
 
     def on_error(self, error):
         print error
 
+#odict = OptimisticDict(_happysad)
+
+with open('odict.dict', 'rb') as fil:
+    odict = cPickle.load(fil)
+
+print odict
 
 if __name__ == '__main__':
 
@@ -64,4 +77,8 @@ if __name__ == '__main__':
         oauth = OAuthHandler(cons_key, cons_secret)
         oauth.set_access_token(token, secret_token)
         streamer = Stream(oauth, listener)
-        streamer.sample()
+        try:
+            streamer.sample()
+        finally:
+            with open('odict.dict','wb') as fil:
+                cPickle.dump(odict, fil)
