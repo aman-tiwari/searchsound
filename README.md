@@ -3,5 +3,5 @@ The SEARCHSOUND project aims to capture and express the disconnected flows of em
 
 ## Extenal Libraries
 * NLTK
-  * Wordnet
+  * Wordnet (for computing word similarities)
 * Tweepy
