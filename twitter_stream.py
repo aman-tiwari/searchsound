@@ -7,7 +7,9 @@ import random
 from optimistic import OptimisticDict
 import time
 import cPickle
-
+import multiprocessing as mp
+from Queue import Empty, Full
+import itertools
 
 nonalp = re.compile(r'([\W_]+)') #Removes nonaplhanumerics
 url1 = re.compile(r'(http t co)') #Removes t.co urls
@@ -15,8 +17,6 @@ url2 = re.compile(r'\b(?=\w*[0-9])\w+\b') #removes blocks of text with numbers i
 
 ss_happy = hs.build_synsets(hs.goods) #Builds synsets of happy & sad words,
 ss_sad = hs.build_synsets(hs.sads)  #hs.goods & sads are just example dictionaries
-
-
 
 token = '364804401-KfBPYVzdISBPzYHwgI0duAkFHTCnvevJIKGtLI9F'
 secret_token = 'DVy6jnwdX5bdWwsFwin5kS47fQ3A07qKzUJy4qphnHE06'
@@ -42,33 +42,62 @@ def process_tweet(data):
     global odict
     #print 'on_data'
     tweet = json.loads(data)
-    if tweet.has_key('text'): #To dodge bookeeping tweets (e.g. deletes)
+    if 'text' in tweet: #To dodge bookeeping tweets (e.g. deletes)
         if tweet['lang'] == 'en':
             sen = tweet['text']
             sen = url2.sub(' ', url1.sub(' ', nonalp.sub(' ', sen))) #Apples the REs defined above
             map(lambda s: sen.replace(s, ''), hs.neutral) #deletes neutral words
             sen = sen.split()
             out = map(lambda w: odict[w], sen)
+            out = sum([[0]*min(len(list(v)), 4) if k == 0 else list(v) for k,v in itertools.groupby(out)], []) #removes long runs of 0
             print out
-    return True
+    return
 
+def warm_up():
+    for word in 'hello world welcome to this happiness filled day'.split():
+        _happysad(word)
+    return
 
 class Listener(StreamListener):
-    loopcounter = 100
 
     def on_data(self, data):
-        return process_tweet(data)
+        try:
+            eat_que.put_nowait(data)
+            #print 'putted!'
+        except Full:
+            #print 'full :('
+            return True
+        return True
 
     def on_error(self, error):
         print error
         return True
 
+def eater(queue):
+    while True:
+        try:
+            tweet = queue.get()
+            #print 'processing'
+            process_tweet(tweet)
+            #print 'processed!'
+        except Empty:
+            pass
 
 if __name__ == '__main__':
+
+    print 'Warming up! (~30secs)'
+    warm_up()
+    print 'Warm!'
+    eat_que = mp.Queue(maxsize=20)
+    play_que = mp.Queue(maxsize=100)
+
+    eater_process = mp.Process(target=eater, args=((q),))
+    eater_process.daemon = True
 
     try: #Imports an existing dict file, creates one if it can't access one
         with open('odict.dict', 'rb') as fil:
             odict = cPickle.load(fil)
+            print 'Loaded odict!'
     except IOError:
         odict = OptimisticDict(_happysad)
 
@@ -77,7 +106,12 @@ if __name__ == '__main__':
     oauth.set_access_token(token, secret_token)
     streamer = Stream(oauth, listener)
     try:
+        eater_process.start()
+        print 'process started!'
         streamer.sample()
+        #print 'stream started!'
     finally:
+        eater_process.join()
         with open('odict.dict','wb') as fil: #Always executed, persists dict to disk
             cPickle.dump(odict, fil)
+        print 'process killed and file saved!'
