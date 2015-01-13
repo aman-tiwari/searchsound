@@ -10,6 +10,7 @@ import cPickle
 import multiprocessing as mp
 from Queue import Empty, Full
 import itertools
+from math import atan, ceil
 
 nonalp = re.compile(r'([\W_]+)') #Removes nonaplhanumerics
 url1 = re.compile(r'(http t co)') #Removes t.co urls
@@ -50,8 +51,8 @@ def process_tweet(data):
             sen = sen.split()
             out = map(lambda w: odict[w], sen)
             out = sum([[0]*min(len(list(v)), 4) if k == 0 else list(v) for k,v in itertools.groupby(out)], []) #removes long runs of 0
-            print out
-    return
+            return out
+    return [0]
 
 def warm_up():
     for word in 'hello world welcome to this happiness filled day'.split():
@@ -78,20 +79,27 @@ def eater(queue):
         try:
             tweet = queue.get()
             #print 'processing'
-            process_tweet(tweet)
+            processed = process_tweet(tweet)
+            #print processed
+            for note in processed:
+                note = ceil(70*atan( 0.07 * note )) + 110
+                note = chr(int(note))
+                print note,
             #print 'processed!'
         except Empty:
             pass
 
+
+
 if __name__ == '__main__':
 
-    print 'Warming up! (~30secs)'
-    warm_up()
-    print 'Warm!'
-    eat_que = mp.Queue(maxsize=20)
-    play_que = mp.Queue(maxsize=100)
 
-    eater_process = mp.Process(target=eater, args=((q),))
+    #print 'Warming up! (~30secs)'
+    warm_up()
+    #print 'Warm!'
+    eat_que = mp.Queue(maxsize=50)
+
+    eater_process = mp.Process(target=eater, args=((eat_que),))
     eater_process.daemon = True
 
     try: #Imports an existing dict file, creates one if it can't access one
@@ -110,6 +118,8 @@ if __name__ == '__main__':
         print 'process started!'
         streamer.sample()
         #print 'stream started!'
+    except KeyboardInterrupt:
+        raise SystemExit
     finally:
         eater_process.join()
         with open('odict.dict','wb') as fil: #Always executed, persists dict to disk
