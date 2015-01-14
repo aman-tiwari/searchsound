@@ -4,4 +4,8 @@ The SEARCHSOUND project aims to capture and express the disconnected flows of em
 ## Extenal Libraries
 * NLTK
   * Wordnet (for computing word similarities)
-* Tweepy
+* TwitterAPI
+* Pianoputer (https://github.com/Zulko/pianoputer)
+* Pygame
+* Numpy
+* Scipi
