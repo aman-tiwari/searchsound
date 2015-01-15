@@ -1,6 +1,8 @@
 # searchsound
 The SEARCHSOUND project aims to capture and express the disconnected flows of emotion in the internet.
 
+Example output: [Processed](https://soundcloud.com/user896574936/t-out-sound-one),  [Unprocessed](https://soundcloud.com/user896574936/bareout-mp3)
+
 ## Extenal Libraries
 * NLTK
   * Wordnet (for computing word similarities)
