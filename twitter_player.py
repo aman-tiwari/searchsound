@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+### Below is literally a copy paste from pianoputer: https://github.com/Zulko/pianoputer
+
 import numpy as np
 import time
 from os import getcwd
