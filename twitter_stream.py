@@ -12,14 +12,14 @@ from datetime import datetime
 
 
 
-nonalp = re.compile(r'([\W_]+)') #Removes nonaplhanumerics
+nonalp = re.compile(r'([\W_]+)') #Removes nonalphanumerics
 url1 = re.compile(r'(http t co)') #Removes t.co urls
 url2 = re.compile(r'\b(?=\w*[0-9])\w+\b') #removes blocks of text with numbers in (i.e shortened bit of url)
 
-token = '364804401-KfBPYVzdISBPzYHwgI0duAkFHTCnvevJIKGtLI9F'
-secret_token = 'DVy6jnwdX5bdWwsFwin5kS47fQ3A07qKzUJy4qphnHE06'
-cons_key = 'IK2t7YHXfZSRkZfgIhoZx5gd6'
-cons_secret = 'E3FQb4AHD1s2E7yCPPQC8qOPhBWm85yW5WeF3epKCD6ObgLiyd'
+token = ''
+secret_token = ''
+cons_key = ''
+cons_secret = ''
 
 api = TwitterAPI(cons_key, cons_secret, token, secret_token)
 
@@ -34,8 +34,8 @@ def _happysad(to_test): #Computes the mean happiness of a word
         happy = [0]
     if not sad:
         sad = [0]
-    h_mean = (sum(map(lambda x:x, happy[:10]))/10) #Mean of 10 highest values
-    s_mean = (sum(map(lambda x:x, sad[:10]))/10)
+    h_mean = (sum(happy[:10]))/10 #Mean of 10 highest values
+    s_mean = (sum(sad[:10]))/10
     return h_mean-s_mean
 
 def piano_sigmoid(x): #Maps -1 to 1 to 65 to 111, using a logistic function
