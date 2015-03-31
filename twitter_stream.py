@@ -1,15 +1,12 @@
-
-
 from TwitterAPI import TwitterAPI
 from optimistic import OptimisticDict
 import cPickle
 import itertools
 from math import atan, ceil, exp
-import happy_sad as hs
 import re
 from numpy import clip
 from datetime import datetime
-
+import happy_sad as hs
 
 
 nonalp = re.compile(r'([\W_]+)') #Removes nonalphanumerics
@@ -53,14 +50,14 @@ def process_tweet_into_notes(tweet):
             out = []
             for w in sen:
                 out.append(odict[w])
-            #print out
 
-            out = sum([[0]*min(len(list(v)), 4) if k == 0 else list(v) for k,v in itertools.groupby(out)], []) #removes long runs of 0
-            #print out
+            #need to make removing long runs of 0s more efficient
+            out = sum([[0]*min(len(list(v)), 4) if k == 0 else list(v) for k,v in itertools.groupby(out)], [])#
             out = map(piano_sigmoid, out)
             return ''.join(map(chr, out))
     return chr(65)
 
+#to load up wordnet
 def warm_up():
     for word in 'hello world welcome to this happiness filled day'.split():
         _happysad(word)
